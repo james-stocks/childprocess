@@ -109,6 +109,7 @@ describe ChildProcess do
   end
   
   it 'allows unicode characters in the environment' do
+    skip 'Does not work in Ruby 1.9' if RUBY_VERSION =~ /^1\./
     Tempfile.open("env-spec") do |file|
       process = write_env(file.path)
       process.environment['FOO'] = 'baör'

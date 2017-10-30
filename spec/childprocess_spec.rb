@@ -107,6 +107,23 @@ describe ChildProcess do
       expect(child_env['CHILD_ONLY']).to eql '1'
     end
   end
+  
+  it 'allows unicode characters in the environment' do
+    # This test does not work on Windows for Ruby < 2.3 because ENV will not be properly decoded
+    # This was fixed in Ruby 2.3 here: https://github.com/ruby/ruby/commit/5e3467c4414df815b3b00d2b0372026b069e7f7d
+    # TODO: Write an alternate test that does not rely on the Ruby ENV hash
+    skip 'Test does not work on Windows for Ruby < 2.3' if Gem.win_platform? && RUBY_VERSION =~ /^1\.|^2\.[0-2]/
+    Tempfile.open("env-spec") do |file|
+      process = write_env(file.path)
+      process.environment['FOO'] = 'baör'
+      process.start
+      process.wait
+      
+      child_env = eval rewind_and_read(file)
+      
+      expect(child_env['FOO'].force_encoding('UTF-8')).to eql 'baör'
+    end
+  end
 
   it "inherits the parent's env vars also when some are overridden" do
     Tempfile.open("env-spec") do |file|
